@@ -127,7 +127,7 @@ where
     /// corresponding [code] and the [datasheet].
     ///
     /// [datasheet]: https://www.openhacks.com/uploadsproductos/eone-1602a1.pdf
-    /// [code]: https://github.com/jalhadi/i2c-hello-world/blob/main/src/main.rs 
+    /// [code]: https://github.com/jalhadi/i2c-hello-world/blob/main/src/main.rs
     /// [blog post]: https://badboi.dev/rust,/microcontrollers/2020/11/09/i2c-hello-world.html
     pub fn init(mut self) -> Result<Self, <I as Write>::Error> {
         // Initial delay to wait for init after power on.
@@ -208,9 +208,26 @@ where
     }
 
     /// Write string to display.
+    pub fn write_char(&mut self, c: char) -> Result<(), <I as Write>::Error> {
+        self.send(c as u8, Mode::Data)?;
+        Ok(())
+    }
+
+    /// Write string to display.
     pub fn write_str(&mut self, data: &str) -> Result<(), <I as Write>::Error> {
+        let mut row = 0;
+        let mut col = 0;
+
         for c in data.chars() {
+            if c == '\n' {
+                row += 1;
+                col = 0;
+                continue;
+            }
+
+            self.set_cursor(row, col)?;
             self.send(c as u8, Mode::Data)?;
+            col += 1;
         }
         Ok(())
     }
